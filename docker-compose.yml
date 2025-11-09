@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   localstack:
     image: localstack/localstack:latest
@@ -13,10 +11,12 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
-      # Enable persistence so SQS/S3 state survives container restarts
-      - DATA_DIR=/var/lib/localstack
+      # Persist state across restarts (queues, buckets, etc.)
+      - PERSISTENCE=1
     volumes:
       - localstack-data:/var/lib/localstack
+      # Init scripts that run when LocalStack is ready
+      - ./localstack-init:/etc/localstack/init/ready.d
     restart: unless-stopped
 
   tvoc-collector:
@@ -35,9 +35,9 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_ENDPOINT_URL=http://localstack:4566
-      # Use queue name; Python code will resolve/create the queue
-      - SENSOR_QUEUE_NAME=${SENSOR_QUEUE_NAME}
-      # Use mock GPIO pin factory so gpiozero does not require real GPIO hardware inside the container
+      # Collector gets full QueueUrl from infra (.env)
+      - SENSOR_QUEUE_URL=${TVOC_SQS_QUEUE_URL}
+      # GPIO in container through mock pin factory
       - GPIOZERO_PIN_FACTORY=${GPIOZERO_PIN_FACTORY}
     # Allow access to UART for the TVOC sensor (adjust device if needed)
     devices:
