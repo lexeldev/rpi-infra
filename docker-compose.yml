@@ -35,9 +35,9 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_ENDPOINT_URL=http://localstack:4566
-      # Application-specific config (full queue URL)
-      - SENSOR_QUEUE_URL=${TVOC_SQS_QUEUE_URL}
-      - # Use mock GPIO pin factory so gpiozero does not require real GPIO hardware inside the container
+      # Use queue name; Python code will resolve/create the queue
+      - SENSOR_QUEUE_NAME=${SENSOR_QUEUE_NAME}
+      # Use mock GPIO pin factory so gpiozero does not require real GPIO hardware inside the container
       - GPIOZERO_PIN_FACTORY=${GPIOZERO_PIN_FACTORY}
     # Allow access to UART for the TVOC sensor (adjust device if needed)
     devices:
