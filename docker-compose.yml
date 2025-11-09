@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566" # Edge port for all AWS services
+    environment:
+      # LocalStack core config
+      - SERVICES=${LOCALSTACK_SERVICES}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - LOCALSTACK_AUTH_TOKEN=${LOCALSTACK_AUTH_TOKEN}
+      # Enable persistence so SQS/S3 state survives container restarts
+      - DATA_DIR=/var/lib/localstack
+    volumes:
+      - localstack-data:/var/lib/localstack
+    restart: unless-stopped
+
+  tvoc-collector:
+    # Python app: reads TVOC sensor and sends messages to SQS
+    build:
+      # This path is relative to the rpi-infra directory on the Raspberry Pi.
+      # It assumes the repo rpi-tvoc-collector is cloned into ../rpi-tvoc-collector
+      context: ../rpi-tvoc-collector
+      dockerfile: Dockerfile
+    container_name: tvoc-collector
+    depends_on:
+      - localstack
+    environment:
+      # AWS SDK configuration to talk to LocalStack
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      # Application-specific config (full queue URL)
+      - SENSOR_QUEUE_URL=${TVOC_SQS_QUEUE_URL}
+    # Allow access to UART for the TVOC sensor (adjust device if needed)
+    devices:
+      - "/dev/ttyAMA0:/dev/ttyAMA0"
+    privileged: true
+    restart: unless-stopped
+
+volumes:
+  localstack-data:

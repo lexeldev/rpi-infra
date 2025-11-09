@@ -1,0 +1,7 @@
+# Prometheus configuration placeholder.
+# Monitoring services (Java/Kotlin processor, Node exporter, etc.)
+# will be added later.
+global:
+  scrape_interval: 15s
+
+scrape_configs: []

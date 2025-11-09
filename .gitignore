@@ -1,0 +1,2 @@
+# Local environment file (never commit real secrets)
+.env
