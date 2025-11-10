@@ -46,5 +46,22 @@ services:
     privileged: true
     restart: unless-stopped
 
+  tvoc-processor:
+    build:
+      context: ../rpi-tvoc-processor
+    container_name: tvoc-processor
+    depends_on:
+      - localstack
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_SQS_ENDPOINT=http://localstack:4566
+      - SENSOR_QUEUE_NAME=tvoc-events
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - TVOC_ALERT_THRESHOLD=2.0
+      - CO2_ALERT_THRESHOLD=1000
+
 volumes:
   localstack-data:
