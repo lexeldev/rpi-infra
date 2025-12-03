@@ -35,8 +35,7 @@ services:
       - AWS_REGION=${AWS_REGION}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_ENDPOINT_URL=http://localstack:4566
-      # Collector gets full QueueUrl from infra (.env)
+      - AWS_ENDPOINT_URL=${AWS_SQS_ENDPOINT}
       - SENSOR_QUEUE_URL=${TVOC_SQS_QUEUE_URL}
       # GPIO in container through mock pin factory
       - GPIOZERO_PIN_FACTORY=${GPIOZERO_PIN_FACTORY}
@@ -52,16 +51,56 @@ services:
     container_name: tvoc-processor
     depends_on:
       - localstack
+      - influxdb
     environment:
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=test
-      - AWS_SECRET_ACCESS_KEY=test
-      - AWS_SQS_ENDPOINT=http://localstack:4566
-      - SENSOR_QUEUE_NAME=tvoc-events
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SQS_ENDPOINT=${AWS_SQS_ENDPOINT}
+      - SENSOR_QUEUE_NAME=${TVOC_SQS_QUEUE_NAME}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - TVOC_ALERT_THRESHOLD=2.0
-      - CO2_ALERT_THRESHOLD=1000
+      - TVOC_ALERT_THRESHOLD=${TVOC_ALERT_THRESHOLD}
+      - CO2_ALERT_THRESHOLD=${CO2_ALERT_THRESHOLD}
+      - INFLUX_URL=${INFLUXDB_URL}
+      - INFLUX_ORG=${INFLUXDB_ORG}
+      - INFLUX_BUCKET=${INFLUXDB_BUCKET}
+      - INFLUX_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+    restart: unless-stopped
+
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "${INFLUXDB_PORT}:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${INFLUXDB_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - influxdb
 
 volumes:
   localstack-data:
+  influxdb-data:
+  influxdb-config:
+  grafana-data:
