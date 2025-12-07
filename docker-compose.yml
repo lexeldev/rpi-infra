@@ -47,9 +47,6 @@ services:
 
   tvoc-processor:
     image: ghcr.io/lexeldev/rpi-tvoc-processor:latest
-    build:
-      context: ../rpi-tvoc-processor
-      dockerfile: Dockerfile
     container_name: tvoc-processor
     depends_on:
       - localstack
