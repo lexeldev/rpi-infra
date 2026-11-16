@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # RPi Infra
 
 This repository defines the infrastructure for the Raspberry Pi homelab:

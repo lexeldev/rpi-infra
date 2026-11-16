@@ -3,8 +3,8 @@ services:
     image: localstack/localstack:latest
     container_name: localstack
     ports:
-      - "4566:4566" # Edge port for all AWS services
-      - "8080:8080"
+      # Host access only from the Pi itself; containers use http://localstack:4566
+      - "127.0.0.1:4566:4566" # Edge port for all AWS services
     environment:
       # LocalStack core config
       - SERVICES=${LOCALSTACK_SERVICES}
@@ -74,7 +74,7 @@ services:
     container_name: influxdb
     restart: unless-stopped
     ports:
-      - "${INFLUXDB_PORT}:8086"
+      - "127.0.0.1:${INFLUXDB_PORT}:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
@@ -91,7 +91,7 @@ services:
     container_name: grafana
     restart: unless-stopped
     ports:
-      - "${GRAFANA_PORT}:3000"
+      - "127.0.0.1:${GRAFANA_PORT}:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
